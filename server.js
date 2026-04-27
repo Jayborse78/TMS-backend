@@ -17,19 +17,18 @@ app.use((req, res, next) => {
   next();
 });
 
-//CORS middleware should be before static and all routes
+// CORS middleware should be before static and all routes
 app.use(cors({
   origin: (origin, callback) => {
     // if no origin (e.g. curl or server-to-server) just allow
     if (!origin) return callback(null, true);
     const allowed = [
       process.env.FRONTEND_URL,
-      "http://localhost:5173",  
+      "http://localhost:5173",
       "http://localhost:5174",
       "http://127.0.0.1:5173",
       "http://127.0.0.1:5174",
       "http://localhost:8081",
-      "http://localhost:8081/",
     ].filter(Boolean);
     if (allowed.includes(origin)) {
       callback(null, true);
@@ -42,7 +41,6 @@ app.use(cors({
   credentials: true,
 }));
 
-
 // Serve static files after CORS
 app.use("/uploads", express.static("uploads"));
 // allow the frontend origin(s) for CORS; during development there may be multiple ports
@@ -50,15 +48,22 @@ app.use(cors({
   origin: (origin, callback) => {
     // if no origin (e.g. curl or server-to-server) just allow
     if (!origin) return callback(null, true);
+    // const allowed = [
+    //   process.env.FRONTEND_URL,
+    //   "http://localhost:5173",
+    //   "http://localhost:5174",
+    //   "http://127.0.0.1:5173",
+    //   "http://127.0.0.1:5174",
+    //   "http://localhost:8081",
+    // ].filter(Boolean);
+
     const allowed = [
-      process.env.FRONTEND_URL,
-      "http://localhost:5173",
-      "http://localhost:5174",
-      "http://127.0.0.1:5173",
-      "http://127.0.0.1:5174",
-      "http://localhost:8081",
-      
-    ].filter(Boolean);
+  process.env.FRONTEND_URL,
+  "http://localhost:5173",
+  "http://localhost:8081",
+  "http://192.168.1.12:8081", // Add this (Metro Bundler IP)
+  "http://192.168.1.12:5000", // Add this
+].filter(Boolean);
     if (allowed.includes(origin)) {
       callback(null, true);
     } else {
@@ -102,7 +107,6 @@ const attendanceRoutes = require("./Routes/masters/attendance_route");
 const profile= require('./Routes/masters/profile_route'); 
 const dashboardRoute = require('./Routes/masters/dashboard_route'); 
 const TrainerDashboardRoute = require('./Routes/masters/dashboard_route'); 
-const calendarRoute = require('./Routes/masters/calendar_route');
 
 // Employee Routes
 const employeeRoutes = require('./Routes/employee/employee_route');
@@ -132,9 +136,7 @@ app.use('/api/profile', profile); //Added by Rajani
 app.use('/admin', verifyToken, dashboardRoute);
 app.use('/trainer', verifyToken, TrainerDashboardRoute); 
 
-
 app.use('/employee', verifyToken,employeeRoutes);
-app.use('/calendar', verifyToken, calendarRoute);
 
 
 
@@ -164,8 +166,17 @@ app.use((err, req, res, next) => {
 // =====================
 // Server Start
 // =====================
+// const PORT = process.env.PORT || 5000;
+
+// app.listen(PORT, () => {
+//   console.log(`🚀 TMS API running at http://localhost:${PORT}`);
+// });
+
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`🚀 TMS API running at http://localhost:${PORT}`);
+// Listen on 0.0.0.0 to accept connections from your phone's IP
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Server covers all interfaces`);
+  console.log(`local: http://localhost:${PORT}`);
+  console.log(`network: http://192.168.1.12:${PORT}`);
 });
